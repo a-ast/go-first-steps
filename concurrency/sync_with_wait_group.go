@@ -28,40 +28,42 @@ func consume(consumerId int, messages <-chan string) {
 
 func main() {
 
-	var wg sync.WaitGroup
+	var waitForPublishers, waitForConsumers sync.WaitGroup
 	messages := make(chan string)
 
-	wg.Add(1)
+	waitForPublishers.Add(1)
 	go func() {
 		publish(1, messages, 100)
-		wg.Done()
+		waitForPublishers.Done()
 	}()
 
-	wg.Add(1)
+	waitForPublishers.Add(1)
 	go func() {
 		publish(2, messages, 100)
-		wg.Done()
+		waitForPublishers.Done()
 	}()
 
-	wg.Add(1)
+	waitForConsumers.Add(1)
 	go func() {
 		consume(1, messages)
-		wg.Done()
+		waitForConsumers.Done()
 	}()
 
-	wg.Add(1)
+	waitForConsumers.Add(1)
 	go func() {
 		consume(2, messages)
-		wg.Done()
+		waitForConsumers.Done()
 	}()
 
-	wg.Add(1)
+	waitForConsumers.Add(1)
 	go func() {
 		consume(3, messages)
-		wg.Done()
+		waitForConsumers.Done()
 	}()
 
-	wg.Wait()
+	waitForPublishers.Wait()
+	close(messages)
+	waitForConsumers.Wait()
 
 	fmt.Println("Fin!")
 }
